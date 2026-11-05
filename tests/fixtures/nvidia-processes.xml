@@ -1,0 +1,10 @@
+<!-- Synthetic process fixture, not a real task snapshot. -->
+<nvidia_smi_log>
+<gpu><pci><pci_bus_id>00000000:02:00.0</pci_bus_id></pci><processes>
+<process_info><pid>100</pid><type>C</type><process_name>/private/path/python3</process_name><used_memory>512 MiB</used_memory></process_info>
+<process_info><pid>200</pid><type>G</type><process_name>/usr/bin/renderer</process_name><used_memory>64 MiB</used_memory></process_info>
+</processes></gpu>
+<gpu><pci><pci_bus_id>00000000:04:00.0</pci_bus_id></pci><processes>
+<process_info><pid>100</pid><type>C</type><process_name>/private/path/python3</process_name><used_memory>1024 MiB</used_memory></process_info>
+</processes></gpu>
+</nvidia_smi_log>

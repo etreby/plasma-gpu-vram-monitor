@@ -10,6 +10,8 @@ applet="$data_home/plasma/plasmoids/local.gpu.monitor"
 mkdir -p "$backup" "$HOME/.local/bin"
 if [ -d "$applet" ]; then cp -a "$applet" "$backup/"; fi
 if [ -e "$HOME/.local/bin/gpu-panel-data" ]; then cp -a "$HOME/.local/bin/gpu-panel-data" "$backup/"; fi
+if [ -e "$HOME/.local/bin/gpu_tasks.py" ]; then cp -a "$HOME/.local/bin/gpu_tasks.py" "$backup/"; fi
+install -m 644 "$root/bin/gpu_tasks.py" "$HOME/.local/bin/gpu_tasks.py"
 install -m 755 "$root/bin/gpu-panel-data" "$HOME/.local/bin/gpu-panel-data"
 if [ -d "$applet" ]; then
     kpackagetool5 --type Plasma/Applet --upgrade "$root/plasmoid"

@@ -8,17 +8,18 @@ Category: Plasma 5 widget / Plasmoid category (choose the current equivalent in 
 
 License: GPL-3.0
 
-Version: 1.4.0
+Version: 1.5.0
 
 Source / homepage: https://github.com/etreby/plasma-gpu-vram-monitor
 
-Download file: gpu-vram-monitor-1.4.0.plasmoid from the GitHub v1.4.0 release.
+Download file: gpu-vram-monitor-1.5.0.plasmoid from the GitHub v1.5.0 release.
 
 ## Description
 
 Monitor GPU core and VRAM temperatures, GPU load, and used/total VRAM
 from a compact KDE Plasma panel widget. Hover for hotspot temperature and memory
-activity. Supports multiple cards, follows Plasma theme colors, and refreshes
+activity. Click for a searchable, sortable per-GPU task view with process
+names, PIDs, GPU memory and activity where available. Supports multiple cards, follows Plasma theme colors, and refreshes
 every three seconds. Unavailable readings and stale samples are marked clearly.
 
 **Requires KDE Plasma 5.27 and Python 3.9+. Plasma 6 is not supported.**
@@ -37,7 +38,8 @@ synthetic tests, not real-card validation here. See docs/hardware-support.md for
 the exact support matrix and instructions.
 
 An unprivileged --diagnose command generates a local report without automatic
-uploads; a GitHub hardware-report form supports community validation. No external
+uploads; a GitHub hardware-report form supports community validation. Process data is local and unprivileged; unsupported utilization is explicitly
+unavailable. Diagnostic reports exclude process data. No external
 gputemps, libpci, third-party Python package or DKMS dependency is needed.
 
 Originally tested with two NVIDIA RTX 3090 cards. GPL-3.0.

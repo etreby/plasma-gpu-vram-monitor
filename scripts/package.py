@@ -8,10 +8,10 @@ import zipfile
 root = Path(__file__).resolve().parents[1]
 out = root / 'dist'
 out.mkdir(exist_ok=True)
-version = '1.4.0'
+version = '1.5.0'
 with zipfile.ZipFile(out / f'gpu-vram-monitor-{version}.plasmoid', 'w', zipfile.ZIP_DEFLATED) as archive:
     for path in sorted((root / 'plasmoid').rglob('*')):
-        if path.is_file():
+        if path.is_file() and '__pycache__' not in path.parts and path.suffix != '.pyc':
             archive.write(path, path.relative_to(root / 'plasmoid'))
 with tarfile.open(out / f'plasma-gpu-vram-monitor-{version}.tar.gz', 'w:gz') as archive:
     for name in ('README.md', 'LICENSE', 'install.sh', 'bin', 'plasmoid', 'scripts', 'tests', 'docs', 'sensors'):

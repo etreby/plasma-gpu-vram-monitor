@@ -32,6 +32,15 @@ a driver-provided VRAM reading may coexist with an experimental hotspot reading.
 `legacy-cache` means the optional service is an older release and should be
 upgraded. A driver-provided source does not mean we tested that model ourselves.
 
+## Process telemetry
+
+v1.5 adds NVIDIA graphics/compute tasks and unprivileged Linux DRM process
+statistics where exposed. Live i915 process activity and GPU buffers were
+verified on local Intel `8086:7d67`, despite its lack of aggregate sensors.
+Other Intel/AMD/Nouveau/platform process support remains conditional on driver
+fdinfo support and procfs permissions. Per-process VRAM/usage are not guaranteed
+on every card. [Process measurement details](process-monitoring.md).
+
 ## Broad coverage boundaries
 
 PCI display-class devices and DRM card/device links are discovered independently

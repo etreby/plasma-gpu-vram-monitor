@@ -14,7 +14,7 @@ import time
 
 PCI_ROOT = Path('/sys/bus/pci/devices')
 CACHE = Path('/run/gpu-vram-monitor/temperatures.json')
-VERSION = '1.4.0'
+VERSION = '1.5.0'
 DRM_ROOT = Path('/sys/class/drm')
 
 
@@ -128,7 +128,7 @@ def nvidia_cards(cached):
         if tier not in ('verified', 'experimental', 'legacy-cache'):
             tier = 'unavailable'
         cards.append({
-            'index': index, 'id': bdf, 'vendor': 'NVIDIA', 'name': name,
+            'index': index, 'driverIndex': index, 'driverBackend': 'nvidia-smi', 'id': bdf, 'vendor': 'NVIDIA', 'name': name,
             'core': thermal(row[7]), 'junction': junction,
             'vram': driver_vram if driver_vram is not None else cached_vram,
             'used': number(row[3]), 'total': number(row[4]),
@@ -214,7 +214,7 @@ def sysfs_cards(pci_root=None, devices=None):
         memory_load = percentage(read(device / 'mem_busy_percent')) if driver == 'amdgpu' else None
         if all(value is None for value in (*temps.values(), used, total, load, memory_load)):
             continue
-        cards.append({'index': 0, 'id': gpu['id'], 'vendor': gpu['vendor'],
+        cards.append({'index': 0, 'driverBackend': driver, 'id': gpu['id'], 'vendor': gpu['vendor'],
                       'name': gpu['name'], **temps,
                       'used': used / 1048576 if used is not None and used >= 0 else None,
                       'total': total / 1048576 if total is not None and total > 0 else None,
@@ -228,7 +228,7 @@ def sysfs_cards(pci_root=None, devices=None):
 METRICS = ('core', 'junction', 'vram', 'used', 'total', 'load', 'memoryLoad')
 
 
-def collect():
+def collect(with_processes=False, process_inventory=False):
     devices = discover_gpus()
     merged = {card['id']: card for card in sysfs_cards(devices=devices)}
     for card in nvidia_cards(temperatures()):
@@ -249,15 +249,31 @@ def collect():
         status = 'available' if available else 'suspended' if gpu['runtime_status'] not in ('active', None) else 'no-driver' if not gpu['driver'] else 'no-readable-sensors'
         inventory.append({key: gpu[key] for key in ('id', 'name', 'vendor', 'driver', 'runtime_status')} |
                          {'status': status, 'available_metrics': available})
+    if with_processes or process_inventory:
+        for gpu in devices:
+            if gpu['id'] not in merged and gpu['driver'] and gpu['runtime_status'] in ('active', None):
+                merged[gpu['id']] = {'index': 0, 'id': gpu['id'], 'vendor': gpu['vendor'],
+                    'name': gpu['name'], 'driverBackend': gpu['driver'], 'processOnly': True,
+                    **{key: None for key in METRICS}, 'thermalSupport': 'unavailable',
+                    'temperatureSources': {'core': None, 'junction': None, 'vram': None}}
     cards = sorted(merged.values(), key=lambda card: card['id'])
     for index, card in enumerate(cards):
         card['index'] = index
         card['capabilities'] = {key: card[key] is not None for key in METRICS}
         card['missingMetrics'] = {key: 'Not exposed by the driver or no enabled compatible thermal profile'
                                   for key in METRICS if card[key] is None}
+    if with_processes and cards:
+        from gpu_tasks import collect_processes
+        try:
+            collect_processes(cards, run)
+        except Exception:
+            for card in cards:
+                card['processInfo'] = {'status': 'unavailable', 'rows': [],
+                                       'note': 'Process telemetry temporarily unavailable', 'usageLabel': 'GPU activity'}
     if not cards and not inventory:
         raise RuntimeError('No GPU devices discovered')
     return {'ok': True, 'timestamp': time.time(), 'cards': cards, 'devices': inventory,
+            'processDetails': with_processes,
             'message': 'No readable GPU sensors; open details for detected devices' if not cards else ''}
 
 
@@ -289,13 +305,15 @@ def diagnose(pci_root=None):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--task-inventory', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--processes', action='store_true', help='Include unprivileged local GPU task snapshots')
     parser.add_argument('--diagnose', action='store_true', help='Print a local, privacy-filtered tester report; never upload')
     args = parser.parse_args(argv)
     if args.diagnose:
         print(json.dumps(diagnose(), allow_nan=False, indent=2))
         return
     try:
-        sample = collect()
+        sample = collect(with_processes=args.processes, process_inventory=args.task_inventory)
     except Exception:
         sample = {'ok': False, 'error': 'GPU readings unavailable. Check GPU drivers and readable sysfs sensors.'}
     print(json.dumps(sample, allow_nan=False))

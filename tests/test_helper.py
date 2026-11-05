@@ -3,11 +3,13 @@ import importlib.util
 import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
 
 path = Path(__file__).resolve().parents[1] / 'bin/gpu-panel-data'
+sys.path.insert(0, str(path.parent))
 loader = importlib.machinery.SourceFileLoader('helper', str(path))
 spec = importlib.util.spec_from_loader(loader.name, loader)
 helper = importlib.util.module_from_spec(spec)
