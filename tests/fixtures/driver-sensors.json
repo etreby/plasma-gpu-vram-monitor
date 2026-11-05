@@ -1,0 +1,13 @@
+{
+  "fixture_kind": "synthetic ABI examples; not hardware validation",
+  "amd": {
+    "vendor": "0x1002", "device": "0x744c", "driver": "amdgpu",
+    "files": {"gpu_busy_percent": "37", "mem_busy_percent": "12", "mem_info_vram_used": "2147483648", "mem_info_vram_total": "17179869184"},
+    "hwmon": {"name": "amdgpu", "temp1_label": "edge", "temp1_input": "45000", "temp2_label": "junction", "temp2_input": "61000", "temp3_label": "mem", "temp3_input": "58000"}
+  },
+  "intel": {
+    "vendor": "0x8086", "device": "0x56a0", "driver": "i915",
+    "files": {},
+    "hwmon": {"name": "i915", "temp1_input": "42000"}
+  }
+}

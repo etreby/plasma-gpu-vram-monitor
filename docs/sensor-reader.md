@@ -9,7 +9,8 @@ module, or /dev/mem dependency. nvidia-smi provides the other GPU metrics.
 
 The service identifies NVIDIA display devices using sysfs vendor/device/class
 IDs and checks that the nvidia driver is bound and the device is active. Its
-initial allowlist is **10de:2204 only**. It maps one BAR0 page at a time from the
+default verified allowlist is **10de:2204 only**. Researched experimental IDs
+require explicit per-ID administrator opt-in; see [the support matrix](hardware-support.md). It maps one BAR0 page at a time from the
 device's sysfs `resource0`, opened read-only with `PROT_READ`. There is no code
 path that writes GPU registers or accepts arbitrary offsets from the widget.
 No runtime-suspended device is intentionally awakened.
@@ -25,7 +26,7 @@ Kernel lockdown, resource mapping restrictions and other hardware may prevent
 access. A device disappearing during an MMIO read may terminate the reader;
 systemd restarts it and the widget rejects stale cached readings after 15 seconds.
 The service has not been reboot-tested. Only the two local RTX 3090 cards have
-been validated. This does not claim support for all GDDR6/GDDR6X/GDDR7 GPUs.
+been validated; the additional GA102 profiles remain experimental. This does not claim support for all GDDR6/GDDR6X/GDDR7 GPUs.
 
 ## Register facts and provenance
 

@@ -8,31 +8,34 @@ Category: Plasma 5 widget / Plasmoid category (choose the current equivalent in 
 
 License: GPL-3.0
 
-Version: 1.2.0
+Version: 1.3.0
 
 Source / homepage: https://github.com/etreby/plasma-gpu-vram-monitor
 
-Download file: gpu-vram-monitor-1.2.0.plasmoid from the GitHub v1.2.0 release.
+Download file: gpu-vram-monitor-1.3.0.plasmoid from the GitHub v1.3.0 release.
 
 ## Description
 
-Monitor NVIDIA GPU core and VRAM temperatures, GPU load, and used/total VRAM
+Monitor GPU core and VRAM temperatures, GPU load, and used/total VRAM
 from a compact KDE Plasma panel widget. Hover for hotspot temperature and memory
 activity. Supports multiple cards, follows Plasma theme colors, and refreshes
 every three seconds. Unavailable readings and stale samples are marked clearly.
 
-**Requires KDE Plasma 5.27, Python 3.9+ and NVIDIA's nvidia-smi.
-Plasma 6 is not supported.**
+**Requires KDE Plasma 5.27 and Python 3.9+. Plasma 6 is not supported.**
 
-The bundled Python helper provides GPU core temperature, load and VRAM usage.
-For RTX 3090 VRAM/hotspot temperatures, install the included optional system
-sensor service from the source bundle (sudo ./sensors/install.sh). This newly
-authored service reads fixed PCI registers with Python's standard library and
-publishes a cache; the widget runs unprivileged. No external gputemps tool,
-libpci, third-party Python packages or DKMS module is required. Direct register
-support is currently limited to PCI device 10de:2204. Unsupported channels show
-a dash; kernel restrictions can prevent register access. See the README and
-reader provenance notes for details.
+NVIDIA uses nvidia-smi. AMD uses readable amdgpu sysfs/hwmon sensors; Intel uses
+GPU hwmon temperatures only where exposed. Unsupported readings show a dash.
+
+The optional bundled system service provides verified RTX 3090 direct VRAM and
+hotspot readings. Researched RTX 3080, 3080 Ti and 3090 Ti PCI IDs have experimental
+profiles, disabled until an administrator explicitly opts in to each ID. Unknown
+direct-register layouts remain blocked. AMD/Intel and experimental profiles have
+synthetic tests, not real-card validation here. See docs/hardware-support.md for
+the exact support matrix and instructions.
+
+An unprivileged --diagnose command generates a local report without automatic
+uploads; a GitHub hardware-report form supports community validation. No external
+gputemps, libpci, third-party Python package or DKMS dependency is needed.
 
 Originally tested with two NVIDIA RTX 3090 cards. GPL-3.0.
 

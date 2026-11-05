@@ -1,11 +1,11 @@
 [Desktop Entry]
 Name=GPU & VRAM Monitor
-Comment=NVIDIA core, hotspot and VRAM temperatures, GPU load and memory usage
+Comment=GPU temperatures, load and memory usage with verified and experimental sensor support
 Icon=video-display
 Type=Service
 X-KDE-ServiceTypes=Plasma/Applet
 X-KDE-PluginInfo-Name=local.gpu.monitor
-X-KDE-PluginInfo-Version=1.2.0
+X-KDE-PluginInfo-Version=1.3.0
 X-KDE-PluginInfo-Author=etreby
 X-KDE-PluginInfo-License=GPL-3.0
 X-KDE-PluginInfo-Category=System Information

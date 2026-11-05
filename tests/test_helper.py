@@ -72,7 +72,7 @@ class TelemetryTests(unittest.TestCase):
     def test_timeout_returns_valid_error_json(self):
         with patch.object(helper, 'collect', side_effect=subprocess.TimeoutExpired('nvidia-smi', 8)), \
              patch('builtins.print') as output:
-            helper.main()
+            helper.main([])
         self.assertFalse(json.loads(output.call_args.args[0])['ok'])
 
     def test_non_finite_sensor_values_are_unavailable(self):

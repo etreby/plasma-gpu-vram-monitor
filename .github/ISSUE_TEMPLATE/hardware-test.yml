@@ -1,0 +1,46 @@
+name: GPU compatibility report
+description: Share real hardware results to help validate experimental profiles and driver sensors.
+title: '[Hardware] GPU model / PCI ID'
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Reports are reviewed manually. Passing synthetic tests does not verify a GPU.
+        Run `~/.local/bin/gpu-panel-data --diagnose > gpu-report.json` as your normal user.
+        Review the report before sharing. It contains PCI IDs, driver/kernel versions and readings.
+        Do not include serial numbers, GPU UUIDs or unrelated desktop content in screenshots.
+  - type: input
+    id: hardware
+    attributes:
+      label: Card model, board manufacturer and PCI device ID
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Distribution, Plasma, kernel and GPU driver versions
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostic
+    attributes:
+      label: Diagnostic JSON
+      description: Paste the reviewed report here. It is generated locally and never uploaded automatically.
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: comparison
+    attributes:
+      label: Reference readings and test conditions
+      description: Include idle/load readings, tool and version, and screenshots if available. Explain whether readings were simultaneous or collected after reboot into another OS. Missing references are useful reports but do not establish verification.
+    validations:
+      required: true
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Review
+      options:
+        - label: I reviewed the report for private data and understand that experimental profiles are unverified.
+          required: true

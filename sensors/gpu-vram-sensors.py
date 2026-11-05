@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-"""Read-only RTX 3090 thermal sampling. No third-party Python modules.
+"""Read-only allowlisted NVIDIA thermal sampling. No third-party Python modules.
 
 SPDX-License-Identifier: GPL-3.0-only
 Register facts and scope are documented in docs/sensor-reader.md.
@@ -15,7 +15,14 @@ import time
 
 PCI_ROOT = Path('/sys/bus/pci/devices')
 CACHE = Path('/run/gpu-vram-monitor/temperatures.json')
-SUPPORTED = {0x2204}  # GA102 GeForce RTX 3090; other hardware is unvalidated.
+PROFILES = {
+    0x2204: {'name': 'RTX 3090', 'tier': 'verified'},
+    0x2203: {'name': 'RTX 3090 Ti', 'tier': 'experimental'},
+    0x2206: {'name': 'RTX 3080', 'tier': 'experimental'},
+    0x220A: {'name': 'RTX 3080', 'tier': 'experimental'},
+    0x2216: {'name': 'RTX 3080', 'tier': 'experimental'},
+    0x2208: {'name': 'RTX 3080 Ti', 'tier': 'experimental'},
+}
 REGISTERS = {'vram': 0xE2A8, 'junction': 0x2046C}
 
 
@@ -42,16 +49,25 @@ def register_value(device, offset):
             return struct.unpack_from('<I', page, byte_offset)[0]
 
 
-def sample(pci_root=PCI_ROOT):
+def sample(pci_root=PCI_ROOT, experimental_devices=()):
     cards = {}
     errors = {}
+    support = {}
     for device in sorted(pci_root.glob('*')):
         try:
             if int((device / 'vendor').read_text(), 16) != 0x10DE:
                 continue
-            if int((device / 'device').read_text(), 16) not in SUPPORTED:
-                continue
+            device_id = int((device / 'device').read_text(), 16)
             if int((device / 'class').read_text(), 16) >> 16 != 0x03:
+                continue
+            profile = PROFILES.get(device_id)
+            tier = profile['tier'] if profile else 'unsupported'
+            enabled = tier == 'verified' or (tier == 'experimental' and device_id in experimental_devices)
+            support[device.name] = {'device_id': f'{device_id:04x}', 'tier': tier,
+                                    'enabled': enabled, 'profile': profile['name'] if profile else None}
+            if not enabled:
+                if tier == 'experimental':
+                    errors[device.name] = 'Experimental profile disabled; explicit administrator opt-in required'
                 continue
             if (device / 'driver').resolve().name != 'nvidia':
                 continue
@@ -66,9 +82,11 @@ def sample(pci_root=PCI_ROOT):
             # The output is matched by PCI address, never NVIDIA enumeration index.
             cards[device.name] = {channel: decode(channel, register_value(device, offset))
                                   for channel, offset in REGISTERS.items()}
+            cards[device.name]['support'] = tier
+            cards[device.name]['profile'] = profile['name']
         except (OSError, ValueError, IndexError, struct.error):
             errors[device.name] = 'Thermal registers unavailable'
-    return {'schema': 1, 'timestamp': time.time(), 'cards': cards, 'errors': errors}
+    return {'schema': 1, 'timestamp': time.time(), 'cards': cards, 'errors': errors, 'support': support}
 
 
 def publish(data, destination=CACHE):
@@ -84,9 +102,24 @@ def publish(data, destination=CACHE):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--once', action='store_true', help='Print a sample; do not write files')
+    parser.add_argument('--experimental-device', action='append', default=[],
+                        type=lambda value: int(value, 16),
+                        choices=[key for key, profile in PROFILES.items() if profile['tier'] == 'experimental'],
+                        help='Opt in to one researched PCI ID, e.g. 2206; repeat for multiple IDs')
+    parser.add_argument('--verified-only', action='store_true', help='Explicitly disable all experimental profiles')
+    parser.add_argument('--list-support', action='store_true', help='List profiles without accessing hardware')
+    parser.add_argument('--validate-options', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.verified_only and args.experimental_device:
+        parser.error('--verified-only cannot be combined with --experimental-device')
+    if args.list_support:
+        print(json.dumps({f'{key:04x}': profile for key, profile in PROFILES.items()}))
+        return
+    if args.validate_options:
+        print(' '.join(f'--experimental-device={key:04x}' for key in sorted(set(args.experimental_device))))
+        return
     if args.once:
-        print(json.dumps(sample(), allow_nan=False))
+        print(json.dumps(sample(experimental_devices=args.experimental_device), allow_nan=False))
         return
     running = True
     def stop(*_):
@@ -95,7 +128,7 @@ def main():
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
     while running:
-        publish(sample())
+        publish(sample(experimental_devices=args.experimental_device))
         # Short sleeps allow a prompt, graceful stop without stale cache reuse.
         for _ in range(30):
             if not running:

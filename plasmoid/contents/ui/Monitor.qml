@@ -18,7 +18,7 @@ Item {
     function heat(v) { return v >= 95 ? PlasmaCore.Theme.negativeTextColor : v >= 80 ? PlasmaCore.Theme.neutralTextColor : PlasmaCore.Theme.textColor }
     function details() {
         if (!healthy) return problem
-        return cards.map(function(c) { return c.name + "\nCore: " + temp(c.core) + "C · Hotspot: " + temp(c.junction) + "C · VRAM: " + temp(c.vram) + "C\nGPU load: " + percent(c.load) + " · Memory activity: " + percent(c.memoryLoad) + "\nVRAM used: " + memory(c) }).join("\n\n") + "\n\nUpdates every 3 seconds. Temperatures: core / VRAM."
+        return cards.map(function(c) { return c.name + "\nCore: " + temp(c.core) + "C · Hotspot: " + temp(c.junction) + "C · VRAM: " + temp(c.vram) + "C\nGPU load: " + percent(c.load) + " · Memory activity: " + percent(c.memoryLoad) + "\nVRAM used: " + memory(c) + "\nThermals: " + (c.thermalSupport || "unavailable") }).join("\n\n") + "\n\nUpdates every 3 seconds. Temperatures: core / VRAM."
     }
     Plasmoid.preferredRepresentation: Plasmoid.compactRepresentation
     Plasmoid.toolTipMainText: "GPU & VRAM Monitor"
@@ -138,6 +138,11 @@ Item {
                     PC.Label { text: "GPU " + (root.healthy ? root.percent(modelData.load) : "—"); color: root.secondary }
                 }
                 PC.Label { text: "Memory activity  " + (root.healthy ? root.percent(modelData.memoryLoad) : "—"); color: root.secondary; font.pointSize: PlasmaCore.Theme.smallestFont.pointSize }
+                PC.Label {
+                    text: "Thermals: " + (modelData.thermalSupport || "unavailable")
+                    color: modelData.thermalSupport === "experimental" ? PlasmaCore.Theme.neutralTextColor : root.secondary
+                    font.pointSize: PlasmaCore.Theme.smallestFont.pointSize
+                }
             }
         }
         PC.Label {
