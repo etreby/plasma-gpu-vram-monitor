@@ -10,7 +10,8 @@ Item {
     property bool healthy: false
     property string problem: "Loading GPU sensors…"
     property double lastUpdate: 0
-    readonly property string command: "/bin/sh -c 'exec \"$HOME/.local/bin/gpu-panel-data\"'"
+    readonly property string command: "python3 " + shellQuote(decodeURIComponent(Qt.resolvedUrl("../scripts/gpu-panel-data.py").toString().replace(/^file:\/\//, "")))
+    function shellQuote(value) { return "'" + value.replace(/'/g, "'\\''") + "'" }
     function temp(v) { return v === null || v === undefined ? "—" : Math.round(v) + "°" }
     function percent(v) { return v === null || v === undefined ? "—" : Math.round(v) + "%" }
     function memory(c) { return c.used === null || !c.total ? "—" : (c.used/1024).toFixed(1) + "/" + Math.round(c.total/1024) + " GiB" }

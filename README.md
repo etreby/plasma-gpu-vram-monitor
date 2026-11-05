@@ -27,7 +27,7 @@ or sudoers rule is included here.
 Download and extract the source `.tar.gz` from Releases, then run:
 
 ```sh
-cd plasma-gpu-vram-monitor-1.0.0
+cd plasma-gpu-vram-monitor-1.0.1
 ./install.sh
 ```
 
@@ -39,9 +39,9 @@ or restart your desktop. An existing applet may require your next login to pick
 up changed QML. The applet ID remains `local.gpu.monitor` for existing users.
 
 The standalone `.plasmoid` archive can also be installed with
-`kpackagetool5 --type Plasma/Applet --install gpu-vram-monitor-1.0.0.plasmoid`;
-it still requires `bin/gpu-panel-data` installed as `~/.local/bin/gpu-panel-data`.
-Use the full source installer for both components.
+`kpackagetool5 --type Plasma/Applet --install gpu-vram-monitor-1.0.1.plasmoid`;
+the Python helper is bundled inside the widget, so no separate helper installation
+is needed. The external NVIDIA driver and gputemps reader are still required.
 
 ## Troubleshooting
 

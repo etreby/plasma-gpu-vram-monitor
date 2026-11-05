@@ -14,6 +14,10 @@ loader.exec_module(helper)
 
 
 class TelemetryTests(unittest.TestCase):
+    def test_bundled_helper_matches_source(self):
+        bundled = path.parents[1] / 'plasmoid/contents/scripts/gpu-panel-data.py'
+        self.assertEqual(path.read_bytes(), bundled.read_bytes())
+
     def test_matches_indices_when_nvidia_rows_are_reordered(self):
         temps = {'gpus': [{'index': 0, 'core': 40, 'junction': 55, 'vram': 60},
                           {'index': 1, 'core': 45, 'junction': 58, 'vram': None}]}

@@ -8,7 +8,7 @@ import zipfile
 root = Path(__file__).resolve().parents[1]
 out = root / 'dist'
 out.mkdir(exist_ok=True)
-version = '1.0.0'
+version = '1.0.1'
 with zipfile.ZipFile(out / f'gpu-vram-monitor-{version}.plasmoid', 'w', zipfile.ZIP_DEFLATED) as archive:
     for path in sorted((root / 'plasmoid').rglob('*')):
         if path.is_file():
