@@ -8,11 +8,11 @@ Category: Plasma 5 widget / Plasmoid category (choose the current equivalent in 
 
 License: GPL-3.0
 
-Version: 1.0.1
+Version: 1.1.0
 
 Source / homepage: https://github.com/etreby/plasma-gpu-vram-monitor
 
-Download file: gpu-vram-monitor-1.0.1.plasmoid from the GitHub v1.0.1 release.
+Download file: gpu-vram-monitor-1.1.0.plasmoid from the GitHub v1.1.0 release.
 
 ## Description
 
@@ -37,4 +37,5 @@ Originally tested with two NVIDIA RTX 3090 cards. GPL-3.0.
 Not submitted. The KDE Store submission page returned Anubis Access Denied in
 the automation browser on 2026-11-05. A signed-in user browser is needed to
 complete the listing. Screenshots for the listing are available in docs/screenshots/gpu-widget.png
-and docs/screenshots/top-panel.png. They show the original installed widget.
+and docs/screenshots/top-panel.png. They show the polished live widget. The expanded view is in
+docs/screenshots/details.png.

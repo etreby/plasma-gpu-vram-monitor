@@ -3,16 +3,19 @@
 A compact panel widget showing NVIDIA GPU core and VRAM temperatures, GPU load,
 and used/total VRAM. Hover for hotspot temperature and memory activity. Updates
 every three seconds, supports multiple GPUs, follows Plasma theme colors, and
-marks unavailable or stale readings. Originally used with two RTX 3090 cards.
+marks unavailable or stale readings. Clear Core/VRAM labels and compact allocation
+meters make the panel easy to scan; click for a detailed per-GPU view. Originally used with two RTX 3090 cards.
 
 ## Screenshots
 
-Live capture of the original installed widget on a Plasma 5.27 top panel, with
-two RTX 3090 cards. The published package detects GPU labels automatically.
+Live captures on Plasma 5.27 with two RTX 3090 cards. The widget detects GPU
+labels automatically. Click it, or focus it and press Enter/Space, for details.
 
 ![GPU widget showing core and VRAM temperatures, GPU load and VRAM usage](docs/screenshots/gpu-widget.png)
 
 [View the full top panel](docs/screenshots/top-panel.png).
+
+![Live expanded GPU details, hotspot temperatures and VRAM allocation](docs/screenshots/details.png)
 
 ## Requirements
 
@@ -36,7 +39,7 @@ or sudoers rule is included here.
 Download and extract the source `.tar.gz` from Releases, then run:
 
 ```sh
-cd plasma-gpu-vram-monitor-1.0.1
+cd plasma-gpu-vram-monitor-1.1.0
 ./install.sh
 ```
 
@@ -48,7 +51,7 @@ or restart your desktop. An existing applet may require your next login to pick
 up changed QML. The applet ID remains `local.gpu.monitor` for existing users.
 
 The standalone `.plasmoid` archive can also be installed with
-`kpackagetool5 --type Plasma/Applet --install gpu-vram-monitor-1.0.1.plasmoid`;
+`kpackagetool5 --type Plasma/Applet --install gpu-vram-monitor-1.1.0.plasmoid`;
 the Python helper is bundled inside the widget, so no separate helper installation
 is needed. The external NVIDIA driver and gputemps reader are still required.
 
