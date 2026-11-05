@@ -7,6 +7,7 @@ import org.kde.plasma.plasmoid 2.0
 Item {
     id: root
     property var cards: []
+    property var unavailableDevices: []
     property bool healthy: false
     property string problem: "Loading GPU sensors…"
     property double lastUpdate: 0
@@ -16,9 +17,12 @@ Item {
     function percent(v) { return v === null || v === undefined ? "—" : Math.round(v) + "%" }
     function memory(c) { return c.used === null || !c.total ? "—" : (c.used/1024).toFixed(1) + " / " + Math.round(c.total/1024) + " GiB" }
     function heat(v) { return v >= 95 ? PlasmaCore.Theme.negativeTextColor : v >= 80 ? PlasmaCore.Theme.neutralTextColor : PlasmaCore.Theme.textColor }
+    function deviceStatus(device) {
+        return device.status === "suspended" ? "Suspended" : device.status === "no-driver" ? "No driver bound" : "No readable sensors exposed by driver"
+    }
     function details() {
         if (!healthy) return problem
-        return cards.map(function(c) { return c.name + "\nCore: " + temp(c.core) + "C · Hotspot: " + temp(c.junction) + "C · VRAM: " + temp(c.vram) + "C\nGPU load: " + percent(c.load) + " · Memory activity: " + percent(c.memoryLoad) + "\nVRAM used: " + memory(c) + "\nThermals: " + (c.thermalSupport || "unavailable") }).join("\n\n") + "\n\nUpdates every 3 seconds. Temperatures: core / VRAM."
+        return cards.map(function(c) { return c.name + "\nCore: " + temp(c.core) + "C · Hotspot: " + temp(c.junction) + "C · VRAM: " + temp(c.vram) + "C\nGPU load: " + percent(c.load) + " · Memory activity: " + percent(c.memoryLoad) + "\nVRAM used: " + memory(c) + "\nThermals: " + (c.thermalSupport || "unavailable") }).join("\n\n") + (unavailableDevices.length ? "\n\n" + unavailableDevices.map(function(d) { return d.name + ": " + deviceStatus(d) }).join("\n") : "") + "\n\nUpdates every 3 seconds. Temperatures: core / VRAM."
     }
     Plasmoid.preferredRepresentation: Plasmoid.compactRepresentation
     Plasmoid.toolTipMainText: "GPU & VRAM Monitor"
@@ -145,8 +149,19 @@ Item {
                 }
             }
         }
+        Repeater {
+            model: root.unavailableDevices
+            delegate: PC.Label {
+                text: modelData.name + " · " + root.deviceStatus(modelData)
+                wrapMode: Text.WordWrap
+                color: root.secondary
+                Layout.fillWidth: true
+                Layout.leftMargin: units.largeSpacing
+                Layout.rightMargin: units.largeSpacing
+            }
+        }
         PC.Label {
-            text: root.healthy ? "Live · refreshes every 3 seconds" : root.problem
+            text: root.healthy ? (root.cards.length ? "Live · refreshes every 3 seconds" : "Devices detected · no readable GPU sensors") : root.problem
             color: root.healthy ? root.secondary : PlasmaCore.Theme.neutralTextColor
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
@@ -163,7 +178,13 @@ Item {
             disconnectSource(sourceName)
             try {
                 var sample = JSON.parse(data.stdout)
-                if (sample.ok) { root.cards = sample.cards; root.healthy = true; root.lastUpdate = Date.now() }
+                if (sample.ok) {
+                    root.cards = sample.cards
+                    root.unavailableDevices = (sample.devices || []).filter(function(d) { return d.status !== "available" })
+                    root.problem = sample.message || "No readable GPU sensors"
+                    root.healthy = true
+                    root.lastUpdate = Date.now()
+                }
                 else { root.healthy = false; root.problem = sample.error }
             } catch (e) { root.healthy = false; root.problem = "GPU sensors unavailable" }
         }

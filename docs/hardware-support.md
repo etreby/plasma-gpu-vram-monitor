@@ -15,12 +15,15 @@ but simulated tests do not establish real-card compatibility.
 | Other NVIDIA cards via nvidia-smi | Driver-provided | Enabled | Core/load/VRAM allocation; memory temperature only if driver exposes it |
 | AMD using amdgpu sysfs/hwmon | Driver-provided, synthetic tests only | Enabled when readable | Labeled core/junction/memory temperatures; GPU/memory busy % and VRAM allocation where exposed |
 | Intel using i915/xe hwmon | Driver-provided, synthetic tests only | Enabled when readable | GPU-specific temperature channels only where exposed; no invented load or dedicated VRAM |
+| Legacy AMD radeon / NVIDIA nouveau | Driver-provided, synthetic tests only | Enabled when readable | GPU core temperature from documented GPU-attached hwmon |
+| Other PCI/DRM GPUs, including platform devices | Detected; telemetry conditional | Discovery enabled | Read explicitly GPU-labeled hwmon from the bound driver; otherwise report missing sensors |
 | Unknown NVIDIA direct-register layout | Unsupported | Blocked | No fallback to another architecture's registers |
 
-All GPU sensor files are optional. A discovered AMD/Intel GPU without any usable
-readings is left out of the widget but remains in diagnostic inventory. CPU or
-package temperature is never substituted for an Intel GPU temperature. NVIDIA
-failure does not prevent AMD/Intel sensors from working. Names for AMD/Intel
+All GPU sensor files are optional. A discovered GPU without usable readings is omitted from the compact panel
+metrics but remains in the details view and diagnostic inventory with a status.
+The documented Intel GPU-package sensor is accepted only from GPU-attached
+i915/xe hwmon; CPU coretemp/package sensors are not used. NVIDIA
+failure does not prevent AMD/Intel sensors from working. Names for non-NVIDIA GPUs
 currently use the vendor and PCI device ID, without adding a pci.ids dependency.
 
 The popup/tooltip and diagnostic JSON distinguish `verified`, `experimental`,
@@ -28,6 +31,32 @@ The popup/tooltip and diagnostic JSON distinguish `verified`, `experimental`,
 a driver-provided VRAM reading may coexist with an experimental hotspot reading.
 `legacy-cache` means the optional service is an older release and should be
 upgraded. A driver-provided source does not mean we tested that model ourselves.
+
+## Broad coverage boundaries
+
+PCI display-class devices and DRM card/device links are discovered independently
+of model and vendor whitelists. Multiple DRM nodes for one physical device are
+deduplicated. DRM-only platform GPUs use a platform identity instead of a made-up
+PCI address. Virtual GPUs are discoverable if represented by these interfaces;
+they frequently have no physical thermal sensors.
+
+The generic hwmon path only accepts a hwmon device associated with the GPU and
+named for its bound driver (nouveau also allows nvkm). Known drivers' documented
+unlabeled temp1 sensors are treated as core/GPU-package temperature. Other
+backends require explicit GPU/core/memory/hotspot labels; arbitrary temperature
+channels, CPU packages and nearby thermal zones are not guessed.
+
+NVIDIA's optional memory-temperature CSV field can be rejected by older drivers.
+The helper then tries nvidia-smi XML and reads only the supported numeric fields.
+Malformed or missing fields stay unavailable. A synthetic GTX 1080 fixture tests
+this behavior; it is not a claim that a physical GTX 1080 was tested.
+
+Every live card reports capability booleans and missing-metric reasons in JSON.
+A driver with no exposed metrics is reported as no-readable-sensors, suspended,
+or no-driver. Discovering a GPU is not the same as providing its VRAM temperature.
+The project cannot promise every metric on every card: some sensors or supported
+interfaces do not exist. Direct-register access remains separately allowlisted.
+No NVIDIA 10/20/40/50-series direct thermal support is introduced by broad discovery.
 
 ## Explicit experimental opt-in
 
@@ -107,6 +136,8 @@ promote a profile automatically. No community confirmations are claimed yet.
 - [Published pre-Blackwell thermal layout research](https://github.com/ThomasBaruzier/gddr6-core-junction-vram-temps/blob/6d8c5ecf633a8658d205fb2c24531bf87164912f/src/sensor.c)
 - [Linux amdgpu thermal and busy-percent ABI](https://docs.kernel.org/gpu/amdgpu/thermal.html)
 - [Linux amdgpu memory accounting ABI](https://docs.kernel.org/gpu/amdgpu/driver-misc.html)
+- [Intel i915 GPU-package temperature ABI](https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-driver-intel-i915-hwmon)
+- [Nouveau thermal interface](https://docs.kernel.org/driver-api/thermal/nouveau_thermal.html)
 - [Linux hwmon labels, units and optional attributes](https://docs.kernel.org/hwmon/sysfs-interface.html)
 
 PCI IDs identify products; NVIDIA's ID list does not document or validate our

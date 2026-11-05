@@ -20,7 +20,7 @@ labels automatically. Click it, or focus it and press Enter/Space, for details.
 ## Requirements
 
 - Linux with **KDE Plasma 5.27**, Python 3.9+, and `kpackagetool5`.
-- NVIDIA: a driver with `nvidia-smi`, or AMD/Intel with readable GPU sysfs/hwmon.
+- A Linux GPU driver exposing NVIDIA management telemetry or GPU-attached hwmon.
 - Optional NVIDIA direct thermals: the included root-owned sensor service.
 
 No gputemps, libpci, third-party Python packages, DKMS or /dev/mem dependency.
@@ -33,8 +33,20 @@ No gputemps, libpci, third-party Python packages, DKMS or /dev/mem dependency.
   These have simulated tests, not real-card confirmation.
 - **Driver-provided:** NVIDIA telemetry through nvidia-smi; AMD temperatures,
   load and VRAM allocation through amdgpu sysfs/hwmon; Intel GPU temperatures
-  only when i915/xe exposes them. Missing channels remain unavailable.
+  only when i915/xe exposes them. Legacy Radeon and Nouveau GPU temperatures
+  and labeled hwmon attached to other DRM GPUs are also read when available.
 - **Unknown direct-register layouts:** blocked, including 40/50-series in this release.
+
+PCI display devices and DRM GPUs (including non-PCI devices) are discovered
+without a model whitelist. Detection is not a promise of working telemetry.
+Detected GPUs with no readable sensors appear in details with their status.
+JSON reports per-metric capabilities and explains missing readings. Older
+NVIDIA drivers that reject optional CSV fields get an XML query fallback.
+
+**VRAM/hotspot temperature cannot be guaranteed for every GPU.** The driver or
+a compatible, validated register profile must expose that reading. GTX 1080,
+for example, can provide standard NVIDIA telemetry but has no direct thermal
+profile here. We do not apply RTX register offsets to Pascal or unknown chips.
 
 [Exact PCI IDs, opt-in instructions and community testing](docs/hardware-support.md).
 Synthetic fixtures cover AMD/Intel parsing; they do not prove hardware support.
@@ -44,7 +56,7 @@ Synthetic fixtures cover AMD/Intel parsing; they do not prove hardware support.
 Download and extract the source `.tar.gz` from Releases, then run:
 
 ```sh
-cd plasma-gpu-vram-monitor-1.3.0
+cd plasma-gpu-vram-monitor-1.4.0
 ./install.sh
 ```
 
@@ -56,7 +68,7 @@ or restart your desktop. An existing applet may require your next login to pick
 up changed QML. The applet ID remains `local.gpu.monitor` for existing users.
 
 The standalone `.plasmoid` archive can also be installed with
-`kpackagetool5 --type Plasma/Applet --install gpu-vram-monitor-1.3.0.plasmoid`;
+`kpackagetool5 --type Plasma/Applet --install gpu-vram-monitor-1.4.0.plasmoid`;
 the Python helper is bundled inside the widget, so no separate helper installation
 is needed. A supported GPU driver is still required. Install the optional sensor service
 from the full source bundle for RTX 3090 VRAM/hotspot temperature:
@@ -67,7 +79,7 @@ sudo ./sensors/install.sh
 
 This explicit administrator step installs a root-owned reader and system service.
 The service samples two fixed read-only register addresses on allowlisted,
-active, allowlisted NVIDIA devices, then publishes a root-owned cache in `/run`. The widget
+active NVIDIA devices, then publishes a root-owned cache in `/run`. The widget
 itself runs as your normal user and never invokes sudo. No GPU registers are
 written, and no driver, firmware, fan, clock, or boot settings are changed.
 See [reader design, provenance and limitations](docs/sensor-reader.md).
@@ -84,12 +96,13 @@ cat /run/gpu-vram-monitor/temperatures.json
 ~/.local/bin/gpu-panel-data
 ```
 
-The helper returns JSON with `ok: true` when GPU usage is available. Missing
+The helper returns JSON with `ok: true` when GPUs are detected; `cards` contains
+readable telemetry and `devices` also includes GPUs without readable sensors. Missing
 thermal channels display a dash. Temperature cache samples older than 15 seconds
 or with future timestamps are rejected. PCI addresses join temperature samples
 to NVIDIA data, independent of GPU enumeration order. No machine UUIDs are
 stored. The only telemetry subprocess is nvidia-smi, with an eight-second timeout;
-AMD/Intel reads use standard sysfs/hwmon files and do not need it.
+Other driver reads use standard sysfs/hwmon files and do not need it.
 
 To help test a card without automatic uploads:
 

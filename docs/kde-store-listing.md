@@ -8,11 +8,11 @@ Category: Plasma 5 widget / Plasmoid category (choose the current equivalent in 
 
 License: GPL-3.0
 
-Version: 1.3.0
+Version: 1.4.0
 
 Source / homepage: https://github.com/etreby/plasma-gpu-vram-monitor
 
-Download file: gpu-vram-monitor-1.3.0.plasmoid from the GitHub v1.3.0 release.
+Download file: gpu-vram-monitor-1.4.0.plasmoid from the GitHub v1.4.0 release.
 
 ## Description
 
@@ -24,7 +24,10 @@ every three seconds. Unavailable readings and stale samples are marked clearly.
 **Requires KDE Plasma 5.27 and Python 3.9+. Plasma 6 is not supported.**
 
 NVIDIA uses nvidia-smi. AMD uses readable amdgpu sysfs/hwmon sensors; Intel uses
-GPU hwmon temperatures only where exposed. Unsupported readings show a dash.
+GPU hwmon temperatures only where exposed. Legacy Radeon, Nouveau and other
+GPU-attached driver hwmon sensors are read when available. PCI/DRM discovery
+includes cards without readable sensors and lists them with their status.
+Detection does not imply full telemetry or VRAM-temperature support on every GPU. Unsupported readings show a dash.
 
 The optional bundled system service provides verified RTX 3090 direct VRAM and
 hotspot readings. Researched RTX 3080, 3080 Ti and 3090 Ti PCI IDs have experimental

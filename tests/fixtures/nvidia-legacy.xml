@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!-- Synthetic GTX 1080-shaped driver output, not a hardware validation sample. -->
+<nvidia_smi_log><gpu id="00000000:03:00.0">
+<product_name>GeForce GTX 1080</product_name><uuid>NOT_FOR_REPORTS</uuid><serial>PRIVATE</serial>
+<pci><pci_bus_id>00000000:03:00.0</pci_bus_id></pci>
+<fb_memory_usage><total>8192 MiB</total><used>1024 MiB</used></fb_memory_usage>
+<utilization><gpu_util>12 %</gpu_util><memory_util>N/A</memory_util></utilization>
+<temperature><gpu_temp>48 C</gpu_temp></temperature>
+</gpu></nvidia_smi_log>

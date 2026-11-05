@@ -56,7 +56,9 @@ class StandardDriverTests(unittest.TestCase):
         device.mkdir()
         for name, value in {'vendor': fixture['vendor'], 'device': fixture['device'], 'class': '0x030000', **fixture['files']}.items():
             (device / name).write_text(value)
-        (device / 'driver').symlink_to('/sys/bus/pci/drivers/' + fixture['driver'])
+        driver = root / 'drivers' / fixture['driver']
+        driver.mkdir(parents=True, exist_ok=True)
+        (device / 'driver').symlink_to(driver)
         (device / 'power').mkdir()
         (device / 'power/runtime_status').write_text('active')
         hwmon = device / 'hwmon/hwmon3'
@@ -92,6 +94,8 @@ class StandardDriverTests(unittest.TestCase):
             self.assertIsNone(card['total'])
             self.assertIsNone(card['load'])
             (hwmon / 'temp1_label').write_text('Package')
+            self.assertEqual(helper.sysfs_cards(root)[0]['core'], 42)
+            (hwmon / 'name').write_text('coretemp')
             self.assertEqual(helper.sysfs_cards(root), [])
 
     def test_missing_nvidia_does_not_hide_amd(self):
@@ -122,4 +126,4 @@ class StandardDriverTests(unittest.TestCase):
             output = json.dumps(report)
             self.assertNotIn('SECRET_SERIAL', output)
             self.assertNotIn('hostname', output)
-            self.assertEqual(report['inventory'][0]['device_id'], '0x744c')
+            self.assertTrue(any(gpu['device_id'] == '0x744c' for gpu in report['inventory']))
