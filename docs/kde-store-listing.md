@@ -8,11 +8,11 @@ Category: Plasma 5 widget / Plasmoid category (choose the current equivalent in 
 
 License: GPL-3.0
 
-Version: 1.1.0
+Version: 1.2.0
 
 Source / homepage: https://github.com/etreby/plasma-gpu-vram-monitor
 
-Download file: gpu-vram-monitor-1.1.0.plasmoid from the GitHub v1.1.0 release.
+Download file: gpu-vram-monitor-1.2.0.plasmoid from the GitHub v1.2.0 release.
 
 ## Description
 
@@ -21,14 +21,18 @@ from a compact KDE Plasma panel widget. Hover for hotspot temperature and memory
 activity. Supports multiple cards, follows Plasma theme colors, and refreshes
 every three seconds. Unavailable readings and stale samples are marked clearly.
 
-**Requires KDE Plasma 5.27, Python 3.9+, NVIDIA's nvidia-smi, and a separately
-installed gputemps reader supporting --once --json. Plasma 6 is not supported.**
+**Requires KDE Plasma 5.27, Python 3.9+ and NVIDIA's nvidia-smi.
+Plasma 6 is not supported.**
 
-The Python helper is included in the widget archive. The gputemps reader is not
-bundled and must already work noninteractively as your desktop user. Its
-hardware support and access requirements apply. See the project README for
-setup and troubleshooting. This widget does not configure privileged access or
-change GPU fans, clocks, desktop themes, or panel layouts.
+The bundled Python helper provides GPU core temperature, load and VRAM usage.
+For RTX 3090 VRAM/hotspot temperatures, install the included optional system
+sensor service from the source bundle (sudo ./sensors/install.sh). This newly
+authored service reads fixed PCI registers with Python's standard library and
+publishes a cache; the widget runs unprivileged. No external gputemps tool,
+libpci, third-party Python packages or DKMS module is required. Direct register
+support is currently limited to PCI device 10de:2204. Unsupported channels show
+a dash; kernel restrictions can prevent register access. See the README and
+reader provenance notes for details.
 
 Originally tested with two NVIDIA RTX 3090 cards. GPL-3.0.
 

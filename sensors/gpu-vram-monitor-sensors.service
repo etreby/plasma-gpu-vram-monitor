@@ -1,0 +1,28 @@
+[Unit]
+Description=Read-only RTX 3090 hotspot and VRAM temperature publisher
+After=systemd-udev-trigger.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -I /usr/local/libexec/gpu-vram-monitor-sensors
+Restart=on-failure
+RestartSec=5
+RuntimeDirectory=gpu-vram-monitor
+RuntimeDirectoryMode=0755
+UMask=0022
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+CapabilityBoundingSet=CAP_SYS_RAWIO
+DevicePolicy=closed
+
+[Install]
+WantedBy=multi-user.target

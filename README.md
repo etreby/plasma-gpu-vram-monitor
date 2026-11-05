@@ -21,25 +21,26 @@ labels automatically. Click it, or focus it and press Enter/Space, for details.
 
 - Linux with **KDE Plasma 5.27**, Python 3.9+, and `kpackagetool5`.
 - NVIDIA proprietary driver with `nvidia-smi` available.
-- [gputemps](https://github.com/ThomasBaruzier/gddr6-core-junction-vram-temps)
-  supporting `--once --json`, accessible noninteractively as your desktop user.
-  The widget reads `index`, `core`, `junction`, and `vram` from its `gpus` array.
-  Actual temperature support depends on your GPU and the reader.
+- For RTX 3090 VRAM/hotspot readings: the included root-owned sensor service.
+  It uses Python's standard library and read-only PCI resource mappings.
 
-This release targets Plasma 5's executable data engine. **Plasma 6 is not
-supported.** The widget does not install drivers, change fans/clocks, or set up
-privileged access. The separate gputemps reader accesses undocumented hardware
-registers and can require root access. If using a sudo wrapper, keep the reader
-and its parent directories root-owned and allow only that executable; never
-permit an ordinary-user-writable program to run as root. No privileged reader
-or sudoers rule is included here.
+**No gputemps dependency, libpci dependency, Python package install, DKMS module,
+or /dev/mem access is needed.** The NVIDIA driver and nvidia-smi remain required.
+This release targets Plasma 5.27; **Plasma 6 is not supported.**
+
+The register reader currently allows only PCI device `10de:2204` (RTX 3090),
+validated on two cards. Other GPUs still show core temperature, load and VRAM
+usage through nvidia-smi. Memory temperature is also used from nvidia-smi where
+supported; otherwise unsupported channels show a dash. Register access may be
+blocked by kernel lockdown or platform policy; the widget keeps working with
+those channels unavailable.
 
 ## Install
 
 Download and extract the source `.tar.gz` from Releases, then run:
 
 ```sh
-cd plasma-gpu-vram-monitor-1.1.0
+cd plasma-gpu-vram-monitor-1.2.0
 ./install.sh
 ```
 
@@ -51,34 +52,53 @@ or restart your desktop. An existing applet may require your next login to pick
 up changed QML. The applet ID remains `local.gpu.monitor` for existing users.
 
 The standalone `.plasmoid` archive can also be installed with
-`kpackagetool5 --type Plasma/Applet --install gpu-vram-monitor-1.1.0.plasmoid`;
+`kpackagetool5 --type Plasma/Applet --install gpu-vram-monitor-1.2.0.plasmoid`;
 the Python helper is bundled inside the widget, so no separate helper installation
-is needed. The external NVIDIA driver and gputemps reader are still required.
+is needed. The external NVIDIA driver is still required. Install the optional sensor service
+from the full source bundle for RTX 3090 VRAM/hotspot temperature:
+
+```sh
+sudo ./sensors/install.sh
+```
+
+This explicit administrator step installs a root-owned reader and system service.
+The service samples two fixed read-only register addresses on allowlisted,
+active NVIDIA devices, then publishes a root-owned cache in `/run`. The widget
+itself runs as your normal user and never invokes sudo. No GPU registers are
+written, and no driver, firmware, fan, clock, or boot settings are changed.
+See [reader design, provenance and limitations](docs/sensor-reader.md).
 
 ## Troubleshooting
 
 Run these as your normal desktop user:
 
 ```sh
-gputemps --once --json
 nvidia-smi
+systemctl status gpu-vram-monitor-sensors
+cat /run/gpu-vram-monitor/temperatures.json
 ~/.local/bin/gpu-panel-data
 ```
 
-The helper must return JSON with `ok: true`. Missing readings display a dash.
-The helper finds gputemps on PATH or at `/usr/local/bin/gputemps`. You can set
-`GPUTEMPS_COMMAND` in the Plasma session environment to an absolute executable
-path (no arguments). Each subprocess has an eight-second timeout. It returns a
-safe error message instead of subprocess stderr. GPU indices join simultaneous
-reader and NVIDIA samples; vendor labels come from PCI subsystem vendor IDs,
-with no machine-specific UUIDs stored in the source. A driver reset or device
-change can temporarily make readings unavailable.
+The helper returns JSON with `ok: true` when GPU usage is available. Missing
+thermal channels display a dash. Temperature cache samples older than 15 seconds
+or with future timestamps are rejected. PCI addresses join temperature samples
+to NVIDIA data, independent of GPU enumeration order. No machine UUIDs are
+stored. The only helper subprocess is nvidia-smi, with an eight-second timeout.
 
 ## Remove
 
 ```sh
 kpackagetool5 --type Plasma/Applet --remove local.gpu.monitor
 rm ~/.local/bin/gpu-panel-data
+```
+
+To remove this project's optional temperature service:
+
+```sh
+sudo systemctl disable --now gpu-vram-monitor-sensors
+sudo rm /etc/systemd/system/gpu-vram-monitor-sensors.service
+sudo rm /usr/local/libexec/gpu-vram-monitor-sensors
+sudo systemctl daemon-reload
 ```
 
 Remove the widget from the panel first. Keep any independent gputemps reader or
@@ -93,5 +113,5 @@ python3 scripts/package.py
 ```
 
 `dist/` contains a `.plasmoid`, complete source/installer `.tar.gz`, and SHA-256
-checksums. GPL-3.0; see LICENSE. gputemps and KDE are independent upstream
-projects and are not bundled.
+checksums. GPL-3.0; see LICENSE. No upstream gputemps implementation is bundled.
+Technical provenance is recorded in docs/sensor-reader.md.
