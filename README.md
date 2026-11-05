@@ -5,6 +5,15 @@ and used/total VRAM. Hover for hotspot temperature and memory activity. Updates
 every three seconds, supports multiple GPUs, follows Plasma theme colors, and
 marks unavailable or stale readings. Originally used with two RTX 3090 cards.
 
+## Screenshots
+
+Live capture of the original installed widget on a Plasma 5.27 top panel, with
+two RTX 3090 cards. The published package detects GPU labels automatically.
+
+![GPU widget showing core and VRAM temperatures, GPU load and VRAM usage](docs/screenshots/gpu-widget.png)
+
+[View the full top panel](docs/screenshots/top-panel.png).
+
 ## Requirements
 
 - Linux with **KDE Plasma 5.27**, Python 3.9+, and `kpackagetool5`.

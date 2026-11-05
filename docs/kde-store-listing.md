@@ -36,4 +36,5 @@ Originally tested with two NVIDIA RTX 3090 cards. GPL-3.0.
 
 Not submitted. The KDE Store submission page returned Anubis Access Denied in
 the automation browser on 2026-11-05. A signed-in user browser is needed to
-complete the listing. Add a real screenshot of the widget when submitting.
+complete the listing. Screenshots for the listing are available in docs/screenshots/gpu-widget.png
+and docs/screenshots/top-panel.png. They show the original installed widget.
